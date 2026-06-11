@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PALM - Pencatatan Timbangan Sawit</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="min-h-screen bg-slate-100 text-slate-900">
+  <main class="mx-auto flex min-h-screen w-full max-w-7xl flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8">
+    <header class="rounded-lg bg-white p-5 shadow-sm ring-1 ring-slate-200">
+      <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+        <div>
+          <p class="text-sm font-semibold uppercase tracking-wide text-emerald-700">PALM ECO-SYSTEM - Milestone 2</p>
+          <h1 class="mt-1 text-2xl font-bold text-slate-950">Pencatatan Timbangan & Kalkulasi Upah Offline</h1>
+          <p class="mt-1 max-w-3xl text-sm text-slate-600">Aplikasi localhost untuk Mandor Kelompok DAUN dengan antrean LocalStorage dan auto-save JSON setiap 30 detik.</p>
+        </div>
+        <div class="flex flex-col gap-2 sm:flex-row">
+          <button id="timeTravelBtn" type="button" class="rounded-lg bg-amber-500 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-amber-600 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2">
+            Simulasikan Waktu Maju 20 Menit
+          </button>
+          <button id="autoSaveNowBtn" type="button" class="rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-900 focus:ring-offset-2">
+            Auto-Save Sekarang
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <section id="alertBox" class="hidden rounded-lg border px-4 py-3 text-sm font-medium" role="alert" aria-live="polite"></section>
+
+    <section class="grid gap-4 md:grid-cols-3">
+      <article class="rounded-lg bg-white p-5 shadow-sm ring-1 ring-slate-200">
+        <p class="text-sm font-medium text-slate-500">Total Berat Bersih Hari Ini</p>
+        <p id="totalNettoToday" class="mt-3 text-3xl font-bold text-slate-950">0 Kg</p>
+      </article>
+      <article class="rounded-lg bg-white p-5 shadow-sm ring-1 ring-slate-200">
+        <p class="text-sm font-medium text-slate-500">Total Upah Kelompok DAUN</p>
+        <p id="totalWage" class="mt-3 text-3xl font-bold text-emerald-700">Rp 0</p>
+      </article>
+      <article class="rounded-lg bg-white p-5 shadow-sm ring-1 ring-slate-200">
+        <p class="text-sm font-medium text-slate-500">Jumlah Antrean Data Offline</p>
+        <p id="pendingCount" class="mt-3 text-3xl font-bold text-amber-600">0 Pending</p>
+      </article>
+    </section>
+
+    <section class="grid flex-1 gap-6 lg:grid-cols-[360px_1fr]">
+      <aside class="rounded-lg bg-white p-5 shadow-sm ring-1 ring-slate-200">
+        <div class="flex items-start justify-between gap-4">
+          <div>
+            <h2 class="text-lg font-bold text-slate-950">Form Mandor</h2>
+            <p class="mt-1 text-sm text-slate-600">Netto dan upah dihitung otomatis oleh sistem.</p>
+          </div>
+          <span class="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700 ring-1 ring-emerald-200">Offline Ready</span>
+        </div>
+
+        <form id="entryForm" class="mt-6 space-y-5">
+          <label class="block">
+            <span class="text-sm font-semibold text-slate-700">Berat Kotor / Bruto (Kg)</span>
+            <input id="grossInput" type="number" step="0.01" min="0" required class="mt-2 w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-base shadow-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200" placeholder="Contoh: 8500" />
+          </label>
+
+          <label class="block">
+            <span class="text-sm font-semibold text-slate-700">Berat Truk Kosong / Tara (Kg)</span>
+            <input id="tareInput" type="number" step="0.01" min="0" required class="mt-2 w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-base shadow-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200" placeholder="Contoh: 3200" />
+          </label>
+
+          <div class="rounded-lg bg-slate-50 p-4 ring-1 ring-slate-200">
+            <div class="flex justify-between gap-3 text-sm">
+              <span class="text-slate-600">Harga Upah per Kg</span>
+              <strong id="priceDisplay" class="text-right text-slate-950">Rp 200</strong>
+            </div>
+            <div class="mt-3 flex justify-between gap-3 text-sm">
+              <span class="text-slate-600">Preview Netto</span>
+              <strong id="nettoPreview" class="text-right text-slate-950">0 Kg</strong>
+            </div>
+            <div class="mt-2 flex justify-between gap-3 text-sm">
+              <span class="text-slate-600">Preview Upah</span>
+              <strong id="wagePreview" class="text-right text-emerald-700">Rp 0</strong>
+            </div>
+          </div>
+
+          <button type="submit" class="w-full rounded-lg bg-emerald-600 px-4 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2">
+            Simpan Data Timbangan
+          </button>
+        </form>
+
+        <div class="mt-5 rounded-lg border border-slate-200 bg-white p-4 text-sm text-slate-600">
+          <div class="flex justify-between gap-3">
+            <span>Status Auto-Save</span>
+            <strong id="autoSaveStatus" class="text-right text-slate-900">Menunggu interval</strong>
+          </div>
+          <div class="mt-2 flex justify-between gap-3">
+            <span>Kapasitas Offline</span>
+            <strong id="capacityStatus" class="text-right text-slate-900">0 / 200</strong>
+          </div>
+        </div>
+      </aside>
+
+      <section class="overflow-hidden rounded-lg bg-white shadow-sm ring-1 ring-slate-200">
+        <div class="flex flex-col gap-3 border-b border-slate-200 p-5 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 class="text-lg font-bold text-slate-950">Data Timbangan Terkini</h2>
+            <p class="mt-1 text-sm text-slate-600">Status kunci dihitung ulang otomatis dari timestamp catat.</p>
+          </div>
+          <button id="clearBtn" type="button" class="rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm font-semibold text-red-700 transition hover:bg-red-100">
+            Kosongkan Data Lokal
+          </button>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-slate-200 text-sm">
+            <thead class="bg-slate-50 text-left text-xs font-bold uppercase tracking-wide text-slate-500">
+              <tr>
+                <th class="px-4 py-3">ID</th>
+                <th class="px-4 py-3">Timestamp</th>
+                <th class="px-4 py-3 text-right">Bruto</th>
+                <th class="px-4 py-3 text-right">Tara</th>
+                <th class="px-4 py-3 text-right">Netto</th>
+                <th class="px-4 py-3 text-right">Upah</th>
+                <th class="px-4 py-3">Sync Status</th>
+                <th class="px-4 py-3">Status Kunci</th>
+                <th class="px-4 py-3 text-right">Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="entriesTableBody" class="divide-y divide-slate-100 bg-white"></tbody>
+          </table>
+        </div>
+
+        <div id="emptyState" class="hidden p-10 text-center">
+          <p class="text-base font-semibold text-slate-700">Belum ada data timbangan.</p>
+          <p class="mt-1 text-sm text-slate-500">Input data dari Form Mandor untuk mengisi antrean offline.</p>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <script src="app.js" defer></script>
+</body>
+</html>
